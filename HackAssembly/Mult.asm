@@ -1,3 +1,7 @@
+@R2
+D=0
+M=D
+
 @R1 // counter input
 D=M
 @counter
