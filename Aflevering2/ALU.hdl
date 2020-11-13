@@ -1,8 +1,10 @@
-CHIP Name {
+CHIP ALU {
 
-    IN input;
-    OUT out;
+    IN x[16], y[16], zx, nx, zy, ny, f, no;
+    OUT out[16], zr, ng;
     PARTS:
     // Put your code here:
     
 }
+
+// ALU(x=inputX16, y=inputY16, zx=zeroX, nx=negateX, zy=zeroY, ny=negateY, f=whatCompute, no=negateOutput, out=output16, zr=outEquals0, ng=outNegative);
