@@ -3,8 +3,47 @@ CHIP ALU {
     IN x[16], y[16], zx, nx, zy, ny, f, no;
     OUT out[16], zr, ng;
     PARTS:
-    // Put your code here:
-    
+    // if zx 
+    Mux16(a=x, b[0..15]=false, sel=zx, out=x0);
+    // if zy
+    Mux16(a=y, b[0..15]=false, sel=zy, out=y0);
+
+    // if nx
+    Not16(in=x, out=notx);
+    Mux16(a=x, b=notx, sel=nx, out=negx);
+
+    // if ny
+    Not16(in=y, out=noty);
+    Mux16(a=y, b=noty, sel=ny, out=negy);
+
+    // if f == 1
+    Add16(a=x, b=y, out=xpy);
+
+    // if f == 0
+    And16(a=x, b=y, out=xandy);
+
+    // choose add or and
+    Mux16(a=xpy, b=xandy, sel=f, out=fout);
+
+    // if no
+    Not16(in=fout, out=nfout);
+
+    // data bits output
+    Mux16(a=fout, b=nfout, sel=no, out=final)
+
+    // control bits output
+    // zr
+    Or8Way(in=final[0..7], out=zr1);
+    Or8Way(in=final[8..15], out=zr2);
+    Or(a=zr1, b=zr2, out=nzr);
+    Not(in=nzr, out=zr);
+
+    // ng
+    And(a=final[15], b=true, out=ng);
+
+    Or16(a=final, b=final, out=out);
 }
 
 // ALU(x=inputX16, y=inputY16, zx=zeroX, nx=negateX, zy=zeroY, ny=negateY, f=whatCompute, no=negateOutput, out=output16, zr=outEquals0, ng=outNegative);
+
+// Mux16(a=inA, b=inB, sel=selector, out=out);
