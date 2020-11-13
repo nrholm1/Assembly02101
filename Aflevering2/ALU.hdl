@@ -1,0 +1,8 @@
+CHIP Name {
+
+    IN input;
+    OUT out;
+    PARTS:
+    // Put your code here:
+    
+}
