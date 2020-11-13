@@ -9,41 +9,37 @@ CHIP ALU {
     Mux16(a=y, b[0..15]=false, sel=zy, out=y0);
 
     // if nx
-    Not16(in=x, out=notx);
-    Mux16(a=x, b=notx, sel=nx, out=negx);
+    Not16(in=x0, out=notx);
+    Mux16(a=x0, b=notx, sel=nx, out=negx);
 
     // if ny
-    Not16(in=y, out=noty);
-    Mux16(a=y, b=noty, sel=ny, out=negy);
+    Not16(in=y0, out=noty);
+    Mux16(a=y0, b=noty, sel=ny, out=negy);
 
     // if f == 1
-    Add16(a=x, b=y, out=xpy);
+    Add16(a=negx, b=negy, out=xpy);
 
     // if f == 0
-    And16(a=x, b=y, out=xandy);
+    And16(a=negx, b=negy, out=xandy);
 
     // choose add or and
-    Mux16(a=xpy, b=xandy, sel=f, out=fout);
+    Mux16(a=xandy, b=xpy, sel=f, out=fout);
 
     // if no
     Not16(in=fout, out=nfout);
 
     // data bits output
-    Mux16(a=fout, b=nfout, sel=no, out=final)
-
+    Mux16(a=fout, b=nfout, sel=no, out[0..7]=final1, out[8..15]=final2); // will not be altered
+    
     // control bits output
     // zr
-    Or8Way(in=final[0..7], out=zr1);
-    Or8Way(in=final[8..15], out=zr2);
-    Or(a=zr1, b=zr2, out=nzr);
+    Or8Way(in=final1, out=nzr1);
+    Or8Way(in=final2, out=nzr2);
+    Or(a=nzr1, b=nzr2, out=nzr);
     Not(in=nzr, out=zr);
 
     // ng
-    And(a=final[15], b=true, out=ng);
+    And16(a[0..7]=final1, a[8..15]=final2, b[0..15]=true, out[15]=ng, out[0..14]=q);
 
-    Or16(a=final, b=final, out=out);
+    And16(a[0..7]=final1, a[8..15]=final2, b[0..15]=true, out=out); // simply output final
 }
-
-// ALU(x=inputX16, y=inputY16, zx=zeroX, nx=negateX, zy=zeroY, ny=negateY, f=whatCompute, no=negateOutput, out=output16, zr=outEquals0, ng=outNegative);
-
-// Mux16(a=inA, b=inB, sel=selector, out=out);
