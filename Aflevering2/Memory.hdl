@@ -1,8 +1,22 @@
 CHIP Memory {
-
-    IN input;
-    OUT out;
-    PARTS:
-    // Put your code here:
+    // Interface
+    // Memory(in=input16, load=loading, address=address15, out=output16);
     
+    IN in[16], load, address[15];
+    OUT out[16];
+    PARTS:
+    // select address space
+    DMux(in=load, sel=address[14], a=toram, b=toscreen);
+
+    // evaluate according to address space and binary rep -> 0..13 for Ram16
+    RAM16K(in=in, load=toram, address=address[0..13], out=ramout);
+
+    // evaluate according to address space and binary rep -> 0..12 for Screen (8K)
+    Screen(in=in, load=toscreen, address=address[0..12], out=screenout);
+
+    // operate on readonly from keyboard 
+    Keyboard(out=keyout);
+
+    // hack way -> ram = 2 x screen, keyboard can occupy everything else
+    Mux4Way16(a=ramout, b=ramout, c=screenout, d=keyout, sel=address[13..14], out=out);
 }
