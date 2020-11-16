@@ -1,8 +1,32 @@
 CHIP CPU {
+    // Interface
+    // CPU(inM=input16, instruction=instruction16, reset=reset, outM=outM16, writeM=outwriteIntoM, addressM=outAddressM15, pc=outPc15);
 
-    IN input;
-    OUT out;
+    IN inM[16], instruction[16], reset;
+    OUT outM[16], writeM, addressM[15], pc[15];
     PARTS:
-    // Put your code here:
     
+    Mux16(a=instruction, b=/* ALU OUTPUT */, sel=instruction[15], out[0]=cInstruction, out[1..15]=outmux1); // instruction, c-bit, ALU  ->  A-register
+
+    // A register
+    Not(in=cInstruction,out=aInstruction);
+    Register(in[0]=false, in[1..15]=outmux1, load=aInstruction, out[0]=loadFromA, out[1..15]=outRegA); // mux16, c-bit -> adressM, PC, Mux16 (->ALU)
+    Register(in[0]=true, in[1..15]=outmux1, load=false, out[0]=/* OpCode C */, out[1..2]=dump, // not used
+                                                                               out[3..9]=cToALU, // for ALU
+                                                                               out[10..12]= toAddM, // Destination load bits 
+                                                                               out[13..15]= toPc); // Jump bits  
+    // mux16, c-bit -> adressM, PC, Mux16 (->ALU)
+
+    Not(in=reset, out=notreset); // should increment if not reset? -> maybe should not increment if loaded from A? 
+    PC(in=outRegA, load=loadFromA, inc=notreset, reset=reset, out[0..14]=pc); // reset, A-register, c-bit  ->  PC-output
+
+    // D register
+    Register(in=input16, load=loading, out=output16); // ALU, c-bit  ->  ALU
+    Mux16(a=inA, b=inB, sel=selector, out=out); // inM, A-register, c-bit  ->  ALU
+    ALU(x=inputX16, y=inputY16, 
+        zx=zeroX, nx=negateX, 
+        zy=zeroY, ny=negateY, 
+        f=whatCompute, no=negateOutput, // D-register, inM(mux16), c-bits
+        out=output16, zr=outEquals0, ng=outNegative);                                                   // ->  outM, D-register, mux16, c-bits
+
 }
