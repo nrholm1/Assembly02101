@@ -2,31 +2,57 @@ CHIP CPU {
     // Interface
     // CPU(inM=input16, instruction=instruction16, reset=reset, outM=outM16, writeM=outwriteIntoM, addressM=outAddressM15, pc=outPc15);
 
+
     IN inM[16], instruction[16], reset;
     OUT outM[16], writeM, addressM[15], pc[15];
     PARTS:
+
+    // declare c-bit variables (syntactical sugar)
+    Or16(a=instruction, b=instruction, out[15]=cInstruction,
+                                        out[13..14]=dump,
+
+                                        out[12]=a,
+
+                                        // ALU control bits
+                                        out[11]=zeroX,
+                                        out[10]=negateX,
+                                        out[9]=zeroY,
+                                        out[8]=negateY,
+                                        out[7]=whatCompute,
+                                        out[6]=negateOutput,
+
+                                        // destination bits
+                                        out[5]=aCbit,
+                                        out[4]=dCbit,
+                                        out[3]=dest3,
+
+                                        // jump bits
+                                        out[2]=jb1,
+                                        out[1]=jb2,
+                                        out[0]=jb3);
     
-    Mux16(a=instruction, b=/* ALU OUTPUT */, sel=instruction[15], out[0]=cInstruction, out[1..15]=outmux1); // instruction, c-bit, ALU  ->  A-register
+    // a-instruction
+    Not(in=cInstruction, out=aInstruction);
+    
+    // A
+    Mux16(a=outALU, b=instruction, sel=aInstruction, out=outMux16);
+    Or(a=aCbit, b=aInstruction, out=loadA);
+    ARegister(in=outMux16, load=loadA, out[0..14]=addressM, out=regAout);
 
-    // A register
-    Not(in=cInstruction,out=aInstruction);
-    Register(in[0]=false, in[1..15]=outmux1, load=aInstruction, out[0]=loadFromA, out[1..15]=outRegA); // mux16, c-bit -> adressM, PC, Mux16 (->ALU)
-    Register(in[0]=true, in[1..15]=outmux1, load=false, out[0]=/* OpCode C */, out[1..2]=dump, // not used
-                                                                               out[3..9]=cToALU, // for ALU
-                                                                               out[10..12]= toAddM, // Destination load bits 
-                                                                               out[13..15]= toPc); // Jump bits  
-    // mux16, c-bit -> adressM, PC, Mux16 (->ALU)
+    // D - TODO -> fix ALU out and which input it receives
+    And(a=cInstruction,b=aCbit,out=inMOrA);
+    Mux16(a=inM, b=regAout, sel=inMOrA, out=muxToALU);
+    And(a=cInstruction, b=dCbit, out=loadD);
+    DRegister(in=outALU, load=loadD, out=regDout);
 
-    Not(in=reset, out=notreset); // should increment if not reset? -> maybe should not increment if loaded from A? 
-    PC(in=outRegA, load=loadFromA, inc=notreset, reset=reset, out[0..14]=pc); // reset, A-register, c-bit  ->  PC-output
 
-    // D register
-    Register(in=input16, load=loading, out=output16); // ALU, c-bit  ->  ALU
-    Mux16(a=inA, b=inB, sel=selector, out=out); // inM, A-register, c-bit  ->  ALU
-    ALU(x=inputX16, y=inputY16, 
-        zx=zeroX, nx=negateX, 
-        zy=zeroY, ny=negateY, 
-        f=whatCompute, no=negateOutput, // D-register, inM(mux16), c-bits
-        out=output16, zr=outEquals0, ng=outNegative);                                                   // ->  outM, D-register, mux16, c-bits
+    ALU(x=regDout, y=muxToALU, // Input 
+        zx=zeroX, nx=negateX, zy=zeroY, ny=negateY, f=whatCompute, no=negateOutput, // c-bits
+        out=outALU, out=outM, zr=outEquals0, ng=outNegative); // output
 
+        
+    PC(in=regAout, 
+        load=false, inc=true, reset=reset, 
+        out[0..14]=pc);
+    And(a=cInstruction, b=dest3, out=writeM);
 }
