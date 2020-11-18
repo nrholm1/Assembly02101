@@ -27,9 +27,9 @@ CHIP CPU {
                                         out[3]=dest3,
 
                                         // jump bits
-                                        out[2]=jb1,
+                                        out[2]=jb3,
                                         out[1]=jb2,
-                                        out[0]=jb3);
+                                        out[0]=jb1);
     
     // a-instruction
     Not(in=cInstruction, out=aInstruction);
@@ -39,9 +39,9 @@ CHIP CPU {
     Or(a=aCbit, b=aInstruction, out=loadA);
     ARegister(in=outMux16, load=loadA, out[0..14]=addressM, out=regAout);
 
-    // D - TODO -> fix ALU out and which input it receives
-    And(a=cInstruction,b=aCbit,out=inMOrA);
-    Mux16(a=inM, b=regAout, sel=inMOrA, out=muxToALU);
+    // D
+    And(a=cInstruction,b=a,out=inMOrA);
+    Mux16(a=regAout, b=inM, sel=inMOrA, out=muxToALU);
     And(a=cInstruction, b=dCbit, out=loadD);
     DRegister(in=outALU, load=loadD, out=regDout);
 
@@ -50,9 +50,21 @@ CHIP CPU {
         zx=zeroX, nx=negateX, zy=zeroY, ny=negateY, f=whatCompute, no=negateOutput, // c-bits
         out=outALU, out=outM, zr=outEquals0, ng=outNegative); // output
 
-        
+    
+    Or(a=outEquals0,b=outNegative,out=alu0orless);    
+    Not(in=alu0orless, out=aluPos);
+    
+    And(a=jb1, b=aluPos, out=jgz);
+    And(a=jb2, b=outEquals0, out=jmp);
+    And(a=jb3, b=outNegative, out=jlz);
+
+    Or(a=jgz, b=jmp, out=jte);
+    Or(a=jlz, b=jte, out=temp);
+    And(a=temp, b=cInstruction, out=jmpCbit);
+    Not(in=jmpCbit,out=incCbit);
     PC(in=regAout, 
-        load=false, inc=true, reset=reset, 
+        load=jmpCbit, inc=incCbit, reset=reset, 
         out[0..14]=pc);
+
     And(a=cInstruction, b=dest3, out=writeM);
 }
