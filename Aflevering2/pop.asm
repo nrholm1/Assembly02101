@@ -59,8 +59,12 @@ D=M
     D=M
     @R6
     M=D
-
-    M=D-3 // subtract @6 by 3
+    
+    // subtract @6 by @3
+    @R3
+    D=M
+    @R6
+    M=M-D
     
     // set @2 to @3
     @nm1
