@@ -1,8 +1,15 @@
 CHIP Computer {
+    // interface
+    // Computer()
 
-    IN input;
+    IN reset;
     OUT out;
     PARTS:
     // Put your code here:
     
+    ROM32K(address=fromPc, out=instrux);
+    CPU(inM=fromMem, instruction=instrux, reset=reset, 
+        outM=outM, writeM=memLoad, addressM=mAddress, pc=fromPc);
+    Memory(in=outM, load=memLoad, address=mAddress, out=fromMem);
+
 }

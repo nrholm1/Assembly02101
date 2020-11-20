@@ -32,6 +32,3 @@ M=D // base = R0
 (END)
     @END
     0;JMP
-
-
-    
