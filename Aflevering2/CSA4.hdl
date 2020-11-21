@@ -2,7 +2,7 @@ CHIP CSA4 {
     IN a[4], b[4], externC;
     OUT sl[2], sh0[2], sh1[2], s[4], cLow, cHigh;
     PARTS:
-                                // not sure
+                                
     CSA2(a=a[0..1], b=b[0..1], externC=externC, s=sl, s=s[0..1], s=sLow, cHigh=cl, cHigh=cLow);
     
     CSA2(a=a[2..3], b=b[2..3], externC=false, s=sh0, s[0]=s00, s[1]=s01, cHigh=ch0);
