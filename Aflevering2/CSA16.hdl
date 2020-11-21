@@ -1,0 +1,29 @@
+CHIP CSA16 {
+    IN a[16], b[16], externC;
+    OUT sl[8], sh0[8], sh1[8], s[16], cLow, cHigh;
+    PARTS:
+                                
+    CSA8(a=a[0..7], b=b[0..7], externC=externC, s=sl, s=s[0..7], s=sLow, cHigh=cl, cHigh=cLow);
+    
+    CSA8(a=a[8..15], b=b[8..15], externC=false, s=sh0, s[0]=s01, s[1]=s02,
+                                                     s[2]=s03, s[3]=s04,
+                                                     s[4]=s05, s[6]=s06,
+                                                     s[6]=s07, s[7]=s08,
+                                                     cHigh=ch0);
+    CSA8(a=a[8..15], b=b[8..15], externC=true, s=sh1, s[0]=s11, s[1]=s12,
+                                                     s[2]=s13, s[3]=s14,
+                                                     s[4]=s15, s[5]=s16,
+                                                     s[6]=s17, s[7]=s18,
+                                                     cHigh=ch1);
+
+    Mux(a=s01, b=s11, sel=cl, out=s[8]);
+    Mux(a=s02, b=s12, sel=cl, out=s[9]);
+    Mux(a=s03, b=s13, sel=cl, out=s[10]);
+    Mux(a=s04, b=s14, sel=cl, out=s[11]);
+    Mux(a=s05, b=s15, sel=cl, out=s[12]);
+    Mux(a=s06, b=s16, sel=cl, out=s[13]);
+    Mux(a=s07, b=s17, sel=cl, out=s[14]);
+    Mux(a=s08, b=s18, sel=cl, out=s[15]);
+
+    Mux(a=ch0, b=ch1, sel=cl, out=cHigh);
+}
