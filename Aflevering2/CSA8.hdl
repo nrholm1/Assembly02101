@@ -1,0 +1,21 @@
+CHIP CSA4 {
+    IN a[8], b[8], externC;
+    OUT sl[4], sh0[4], sh1[4], s[8], cLow, cHigh;
+    PARTS:
+                                // not sure
+    CSA4(a=a[0..3], b=b[0..3], externC=externC, s=sl, s=s[0..3], s=sLow, cHigh=cl, cHigh=cLow);
+    
+    CSA4(a=a[4..7], b=b[4..7], externC=false, s=sh0, s[0]=s01, s[1]=s02,
+                                                     s[2]=s03, s[3]=s04,
+                                                     cHigh=ch0);
+    CSA4(a=a[4..7], b=b[4..7], externC=true, s=sh1, s[0]=s11, s[1]=s12,
+                                                     s[2]=s13, s[3]=s14,
+                                                     cHigh=ch1);
+
+    Mux(a=s00, b=s01, sel=cl, out=s[2]);
+    Mux(a=s10, b=s11, sel=cl, out=s[3]);
+
+    Mux(a=ch0, b=ch1, sel=cl, out=cHigh);
+}
+
+Mux
