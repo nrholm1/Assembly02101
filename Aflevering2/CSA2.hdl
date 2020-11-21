@@ -1,0 +1,19 @@
+CHIP CSA2 {
+    IN a[2], b[2], externC;
+    OUT sl, sh0, sh1, s[2], cLow, cHigh;
+    PARTS:
+
+    Or(a=a[1], b=a[1], out=ah);
+    Or(a=a[0], b=a[0], out=al);
+    
+    Or(a=b[1], b=b[1], out=bh);
+    Or(a=b[0], b=b[0], out=bl);
+
+    FullAdder(a=al, b=bl, c=externC, sum=sl, sum=s[0], carry=cLow, carry=cl);
+
+    FullAdder(a=ah, b=bh, c=false, sum=sh0, sum=sh0cpy, carry=c0);
+    FullAdder(a=ah, b=bh, c=true, sum=sh1, sum=sh1cpy, carry=c1);
+
+    Mux(a=sh0cpy, b=sh1cpy, sel=cl, out=s[1]);
+    Mux(a=c0, b=c1, sel=cl, out=cHigh);
+}
